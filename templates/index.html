@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Pitch Deck Generator</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                </div>
+                <span class="logo-text">AI Pitch Deck</span>
+            </div>
+            <div class="header-badge">Powered by Llama 3.2</div>
+        </header>
+
+        <!-- Step Indicator -->
+        <div class="steps-bar">
+            <div class="step active" data-step="1">
+                <div class="step-circle">1</div>
+                <span>Choose Theme</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" data-step="2">
+                <div class="step-circle">2</div>
+                <span>Business Brief</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step" data-step="3">
+                <div class="step-circle">3</div>
+                <span>Generate</span>
+            </div>
+        </div>
+
+        <!-- Step 1: Theme Selection -->
+        <section id="step1" class="step-content active">
+            <div class="section-header">
+                <h2>Select Your Theme</h2>
+                <p>Choose a design theme that matches your industry and brand identity</p>
+            </div>
+            <div id="themes-grid" class="themes-grid">
+                <!-- Themes loaded via JS -->
+            </div>
+        </section>
+
+        <!-- Step 2: Business Brief -->
+        <section id="step2" class="step-content">
+            <div class="section-header">
+                <h2>Your Business Brief</h2>
+                <p>Tell us about your brand and we'll create a compelling pitch deck</p>
+            </div>
+            <form id="brief-form" class="brief-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="brand_name">Brand / Company Name</label>
+                        <input type="text" id="brand_name" placeholder="e.g., NovaTech Solutions" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tone">Tone & Style</label>
+                        <select id="tone">
+                            <option value="professional">Professional</option>
+                            <option value="bold">Bold & Confident</option>
+                            <option value="friendly">Friendly & Approachable</option>
+                            <option value="inspirational">Inspirational</option>
+                            <option value="minimal">Minimal & Clean</option>
+                            <option value="playful">Playful & Creative</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="problem_statement">Problem Statement</label>
+                    <textarea id="problem_statement" rows="3" placeholder="What problem does your brand solve? e.g., Small businesses struggle to create professional marketing materials without expensive agencies..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="target_audience">Target Audience</label>
+                    <textarea id="target_audience" rows="2" placeholder="Who is your ideal customer? e.g., Marketing managers at mid-size B2B companies aged 28-45..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="additional_context">Additional Context <span class="optional">(optional)</span></label>
+                    <textarea id="additional_context" rows="2" placeholder="Any extra details: key features, competitive advantages, recent achievements..."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="goToStep(1)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        Back
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        Generate Pitch Deck
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Step 3: Generation Progress -->
+        <section id="step3" class="step-content">
+            <div class="generation-container">
+                <div id="progress-view" class="progress-view">
+                    <div class="progress-icon">
+                        <div class="spinner"></div>
+                    </div>
+                    <h2 id="progress-title">Generating Your Pitch Deck</h2>
+                    <p id="progress-message">Starting AI agents...</p>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="progress-bar" style="width: 0%"></div>
+                    </div>
+                    <div class="progress-percent" id="progress-percent">0%</div>
+
+                    <div class="agent-stages">
+                        <div class="agent-stage" id="stage-research">
+                            <div class="agent-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            </div>
+                            <span>Market Research</span>
+                            <div class="agent-status"></div>
+                        </div>
+                        <div class="agent-stage" id="stage-strategy">
+                            <div class="agent-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+                            </div>
+                            <span>Strategy</span>
+                            <div class="agent-status"></div>
+                        </div>
+                        <div class="agent-stage" id="stage-creative">
+                            <div class="agent-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path></svg>
+                            </div>
+                            <span>Creative Content</span>
+                            <div class="agent-status"></div>
+                        </div>
+                        <div class="agent-stage" id="stage-structure">
+                            <div class="agent-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
+                            </div>
+                            <span>Slide Structure</span>
+                            <div class="agent-status"></div>
+                        </div>
+                        <div class="agent-stage" id="stage-review">
+                            <div class="agent-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            </div>
+                            <span>Quality Review</span>
+                            <div class="agent-status"></div>
+                        </div>
+                        <div class="agent-stage" id="stage-build">
+                            <div class="agent-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                            </div>
+                            <span>Building PPTX</span>
+                            <div class="agent-status"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="complete-view" class="complete-view" style="display:none">
+                    <div class="complete-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                    </div>
+                    <h2>Your Pitch Deck is Ready!</h2>
+                    <p>15 professionally designed slides with AI-generated content</p>
+                    <a id="download-btn" href="#" class="btn btn-primary btn-large" download>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        Download PPTX
+                    </a>
+                    <button class="btn btn-secondary" onclick="resetApp()">
+                        Create Another Deck
+                    </button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

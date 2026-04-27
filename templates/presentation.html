@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{{ deck.brand_name }} - Pitch Deck</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/reset.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/theme/black.min.css" id="theme">
+    
+    <style>
+        .reveal h1, .reveal h2, .reveal h3 {
+            color: #42b883; /* Modern accent color */
+            text-transform: none;
+            letter-spacing: -0.02em;
+            font-weight: 700;
+        }
+        .reveal .slide-body {
+            font-size: 0.9em;
+            margin: 30px auto;
+            max-width: 80%;
+            line-height: 1.4;
+            color: #e0e0e0;
+        }
+        .reveal .slide-bullets {
+            font-size: 0.85em;
+            text-align: left;
+            margin: 30px auto;
+            max-width: 80%;
+            line-height: 1.6;
+        }
+        .reveal .slide-bullets li {
+            margin-bottom: 15px;
+        }
+        .reveal .slide-cta {
+            margin-top: 50px;
+            padding: 15px 40px;
+            background: #42b883;
+            color: #1a1a2e;
+            border-radius: 50px;
+            display: inline-block;
+            font-weight: bold;
+            font-size: 0.7em;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+            max-width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #42b883;
+            margin-bottom: 10px;
+        }
+        .stat-text {
+            font-size: 0.7em;
+            color: #a0a0a0;
+        }
+        
+        /* Layout specific styles */
+        .two-column {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 40px;
+        }
+        .two-column > div {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 20px;
+        }
+        .quote-slide h2 {
+            font-size: 2.5em;
+            font-style: italic;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+        .quote-slide .quote-mark {
+            font-size: 4em;
+            color: #42b883;
+            line-height: 0.5;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            {% for slide in deck.slides %}
+            <section data-transition="slide" class="{% if slide.purpose == 'quote_insight' %}quote-slide{% endif %}">
+                
+                {% if slide.purpose == 'quote_insight' %}
+                    <div class="quote-mark">"</div>
+                    <h2>{{ slide.body or slide.title }}</h2>
+                    {% if slide.subtitle %}<h3 style="color: #42b883; font-size: 1.2em; margin-top: 30px;">- {{ slide.subtitle }} -</h3>{% endif %}
+                {% elif slide.purpose == 'two_column' %}
+                    {% if slide.title %}<h2>{{ slide.title }}</h2>{% endif %}
+                    <div class="two-column">
+                        <div>
+                            {% if slide.body %}<p style="font-size: 0.8em; text-align: left;">{{ slide.body }}</p>{% endif %}
+                        </div>
+                        <div>
+                            {% if slide.bullets %}
+                            <ul style="font-size: 0.8em; text-align: left;">
+                                {% for bullet in slide.bullets %}
+                                <li style="margin-bottom: 15px;">{{ bullet }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% elif slide.purpose == 'stats_numbers' %}
+                    {% if slide.title %}<h2>{{ slide.title }}</h2>{% endif %}
+                    <div class="stat-grid">
+                        {% for bullet in slide.bullets[:4] %}
+                        <div class="stat-card">
+                            <div class="stat-number">#{{ loop.index }}</div>
+                            <div class="stat-text">{{ bullet }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <!-- Standard Slide Content -->
+                    {% if slide.title %}<h2>{{ slide.title }}</h2>{% endif %}
+                    {% if slide.subtitle %}<h3 style="font-size: 1.2em; margin-bottom: 30px; opacity: 0.8;">{{ slide.subtitle }}</h3>{% endif %}
+                    
+                    {% if slide.body %}
+                    <div class="slide-body">{{ slide.body }}</div>
+                    {% endif %}
+                    
+                    {% if slide.bullets %}
+                    <ul class="slide-bullets">
+                        {% for bullet in slide.bullets %}
+                        <li>{{ bullet }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                {% endif %}
+
+                {% if slide.cta %}
+                <div class="slide-cta">{{ slide.cta }}</div>
+                {% endif %}
+            </section>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/reveal.min.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            transition: 'slide', // none/fade/slide/convex/concave/zoom
+            controls: true,
+            progress: true,
+            center: true,
+        });
+    </script>
+</body>
+</html>
