@@ -1,4 +1,4 @@
-from app.services import ollama_service
+from app.services import huggingface_service
 
 
 SYSTEM_PROMPT = """You are a chief strategy officer at a world-class advertising agency.
@@ -32,7 +32,7 @@ Produce a JSON response:
     "competitive_advantage": "What makes this brand different"
 }}"""
 
-    result = await ollama_service.generate_json(prompt, SYSTEM_PROMPT)
+    result = await huggingface_service.generate_json(prompt, SYSTEM_PROMPT)
     if result.get("parse_error"):
         result = {
             "key_insight": f"{target_audience} are looking for a solution that truly understands their needs in {problem_statement}.",

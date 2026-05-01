@@ -11,12 +11,12 @@ An intelligent, multi-agent AI system built with FastAPI and Python that automat
 - **HTML to PPTX Engine**: Converts structured AI output directly into an editable `.pptx` file.
 - **Real-Time Updates**: Uses WebSockets to stream generation progress to the UI.
 - **Modern Web Interface**: Built-in web dashboard to input your brand details, problem statement, and audience.
-- **Local AI Powered**: Integrated with Ollama for secure, local language model inference.
+- **Cloud AI Powered**: Integrated with Hugging Face Inference API using Xiaomi's MiMo-V2-Flash model.
 
 ## Tech Stack
 
 - **Backend**: FastAPI (Python)
-- **AI Processing**: Ollama, `httpx`
+- **AI Processing**: Hugging Face Inference API (`huggingface-hub`), MiMo-V2-Flash
 - **Search**: `duckduckgo-search`
 - **Document Generation**: `python-pptx`
 - **Frontend**: HTML/Jinja2 Templates, Vanilla JS, WebSockets
@@ -24,7 +24,7 @@ An intelligent, multi-agent AI system built with FastAPI and Python that automat
 ## Prerequisites
 
 1. **Python 3.10+** installed on your system.
-2. **Ollama** installed and running locally with your preferred model (e.g., Llama 3).
+2. **Hugging Face API Key** with access to inference endpoints.
 
 ## Installation & Setup
 
@@ -54,14 +54,27 @@ An intelligent, multi-agent AI system built with FastAPI and Python that automat
    pip install -r requirements.txt
    ```
 
+5. **Set your Hugging Face API key** (optional if hardcoded in config):
+   ```bash
+   export HUGGINGFACE_API_KEY="hf_your_api_key_here"
+   ```
+
+## Configuration
+
+You can configure the following environment variables:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `HUGGINGFACE_API_KEY` | *(set in config)* | Your Hugging Face API token |
+| `HUGGINGFACE_MODEL` | `XiaomiMiMo/MiMo-V2-Flash` | The model to use for inference |
+
 ## Running the Application
 
-1. Make sure your local **Ollama** service is running.
-2. Start the FastAPI development server:
+1. Start the FastAPI development server:
    ```bash
    uvicorn app.main:app --reload
    ```
-3. Open your browser and navigate to: [http://localhost:8000](http://localhost:8000)
+2. Open your browser and navigate to: [http://localhost:8000](http://localhost:8000)
 
 ## How it Works
 
@@ -69,3 +82,7 @@ An intelligent, multi-agent AI system built with FastAPI and Python that automat
 2. The backend spins up asynchronous AI agents that research the market, develop a content strategy, and write the slides.
 3. The real-time progress is streamed back to your browser via WebSockets.
 4. Once generation is complete, you can download the fully formatted, editable `.pptx` file directly from the UI.
+
+## Model Info
+
+This project uses **MiMo-V2-Flash** by Xiaomi, a powerful conversational AI model available on Hugging Face. It excels at structured reasoning, JSON generation, and creative content — making it ideal for pitch deck generation.

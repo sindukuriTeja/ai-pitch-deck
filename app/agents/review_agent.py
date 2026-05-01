@@ -1,4 +1,4 @@
-from app.services import ollama_service
+from app.services import huggingface_service
 
 SYSTEM_PROMPT = """You are a senior creative reviewer at an advertising agency.
 Review a pitch deck plan for quality. Check for:
@@ -67,7 +67,7 @@ Respond in JSON:
     "improvements": ["improvement 1"],
     "approved": true
 }}"""
-        review = await ollama_service.generate_json(prompt, SYSTEM_PROMPT)
+        review = await huggingface_service.generate_json(prompt, SYSTEM_PROMPT)
         if not review.get("parse_error"):
             quality_score = review.get("quality_score", 7)
         else:

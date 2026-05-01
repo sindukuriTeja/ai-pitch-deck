@@ -1,5 +1,5 @@
 from app.services import search_service
-from app.services import ollama_service
+from app.services import huggingface_service
 
 
 SYSTEM_PROMPT = """You are a senior market research analyst at a top advertising agency.
@@ -33,7 +33,7 @@ Produce a JSON response with these fields:
     "key_data_points": ["stat or fact 1", "stat or fact 2", "stat or fact 3"]
 }}"""
 
-    result = await ollama_service.generate_json(prompt, SYSTEM_PROMPT)
+    result = await huggingface_service.generate_json(prompt, SYSTEM_PROMPT)
     if result.get("parse_error"):
         # Fallback with structured defaults
         result = {

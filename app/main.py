@@ -11,7 +11,7 @@ from app.models.schemas import GenerateRequest, TaskStatus
 from app.pptx_engine.themes import list_themes
 from app.pptx_engine.builder import build_presentation
 from app.agents import research_agent, strategy_agent, creative_agent, structure_agent, review_agent
-from app.services import ollama_service
+from app.services import huggingface_service
 from app.config import OUTPUT_DIR
 
 app = FastAPI(title="AI Pitch Deck Generator", version="1.0.0")
@@ -87,8 +87,8 @@ async def get_themes():
 
 @app.get("/api/health")
 async def health():
-    ollama_ok = await ollama_service.check_health()
-    return {"status": "ok", "ollama": ollama_ok}
+    model_ok = await huggingface_service.check_health()
+    return {"status": "ok", "model": model_ok}
 
 
 @app.post("/api/generate")

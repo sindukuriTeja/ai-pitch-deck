@@ -1,4 +1,4 @@
-from app.services import ollama_service
+from app.services import huggingface_service
 
 
 SYSTEM_PROMPT = """You are an award-winning creative director at a top advertising agency.
@@ -38,7 +38,7 @@ Format:
     ]
 }}"""
 
-    result = await ollama_service.generate_json(prompt, SYSTEM_PROMPT)
+    result = await huggingface_service.generate_json(prompt, SYSTEM_PROMPT)
     if result.get("parse_error") or "slides" not in result:
         result = {
             "big_idea": f"Reimagining {problem_statement.split()[0:3]} for a better tomorrow",
