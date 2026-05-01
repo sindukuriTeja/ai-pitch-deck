@@ -11,19 +11,8 @@ from app.models.schemas import GenerateRequest, TaskStatus
 from app.pptx_engine.themes import list_themes
 from app.pptx_engine.builder import build_presentation
 from app.agents import research_agent, strategy_agent, creative_agent, structure_agent, review_agent
-from app.services import huggingface_service
+from app.services import huggingface_service, image_service
 from app.config import OUTPUT_DIR
-
-app = FastAPI(title="AI Pitch Deck Generator", version="1.0.0")
-
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
-
-# In-memory task store
-tasks: dict[str, TaskStatus] = {}
-decks: dict[str, dict] = {}
-websocket_connections: dict[str, list[WebSocket]] = {}
 
 
 async def notify_progress(task_id: str, status: str, progress: int, message: str, download_url: str = None):
@@ -62,6 +51,14 @@ async def generate_deck(task_id: str, request: GenerateRequest):
         # Step 4: Quality Review & Refinement
         await notify_progress(task_id, "reviewing", 75, "Refining copy and ensuring quality...")
         creative = await review_agent.run(creative, request.tone)
+
+        # Step 5: Image Generation
+        await notify_progress(task_id, "visualizing", 80, "Generating professional AI illustrations...")
+        for slide in creative.get("slides", []):
+            if slide.get("image_prompt"):
+                img_path = image_service.generate_image(slide["image_prompt"])
+                if img_path:
+                    slide["image_path"] = img_path
 
         await notify_progress(task_id, "structuring", 85, "Finalizing presentation structure...")
 
