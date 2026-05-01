@@ -1,35 +1,62 @@
 from app.services import huggingface_service
+from app.agents.templates import get_template
 
 
-SYSTEM_PROMPT = """You are a chief strategy officer at a world-class advertising agency.
-Your job is to take market research and a business brief, then develop a powerful strategic direction.
-Create a compelling insight (not generic), a clear positioning statement, and a strategic framework.
-Think like the best strategists: find the tension, the truth, the unexpected angle."""
+SYSTEM_PROMPT = """You are a Master Pitch Architect. You design winning strategies for Silicon Valley startups.
+Your goal is to build an unshakeable narrative bridge between the 'Intelligence' (research) and the 'Invention' (the product).
+You don't just state facts; you craft a logical and emotional arc that makes the 'Funding Ask' feel inevitable.
+
+Strategic Alignment Rules:
+1. PROBLEM-SOLUTION TIGHTNESS: Every pain point identified in research must have a specific feature in the solution.
+2. MARKET ALIGNMENT: The 'Why Now' from research must be the foundation of the 'Vision'.
+3. COMPETITIVE DESTRUCTION: The 'Competitor Blindspots' must be the core of the 'Competitive Advantage'.
+4. NARRATIVE FLOW: Ensure a smooth transition from market tension to product relief."""
 
 
-async def run(brand_name: str, problem_statement: str, target_audience: str, tone: str, research: dict) -> dict:
-    prompt = f"""Develop an advertising strategy for "{brand_name}".
+async def run(brand_name: str, problem_statement: str, target_audience: str, tone: str, research: dict, theme_id: str) -> dict:
+    template_structure = "\n".join([f"- {s}" for s in get_template(theme_id)])
+    
+    # Extract smarter research components
+    intel = research.get('market_intelligence', {})
+    comp = research.get('competitor_intelligence', {})
+    psycho = research.get('audience_psychographics', {})
+
+    prompt = f"""Architect a winning strategy for "{brand_name}" in the {theme_id} domain.
+
+Market Intelligence:
+- The Why Now: {intel.get('the_why_now')}
+- Market Drivers: {', '.join(intel.get('market_dynamics', {}).get('growth_drivers', []))}
+- Direct Rival Blindspots: {', '.join([c.get('blindspot', '') for c in comp.get('direct_rivals', [])])}
+- Core Human Tension: {psycho.get('core_tension')}
+
+Strategic Requirements for {theme_id}:
+{template_structure}
 
 Brief:
 - Problem: {problem_statement}
-- Target Audience: {target_audience}
+- Audience: {target_audience}
 - Tone: {tone}
 
-Research Summary:
-- Brand: {research.get('brand_summary', '')}
-- Market Trends: {', '.join(research.get('market_trends', []))}
-- Audience Insights: {', '.join(research.get('audience_insights', []))}
-- Competitors: {', '.join(research.get('competitors', []))}
-- Opportunities: {', '.join(research.get('opportunities', []))}
+Generate a 'Master Strategy JSON'. This is the blueprint for the entire deck.
 
-Produce a JSON response:
+JSON structure:
 {{
-    "key_insight": "A non-obvious, specific insight about the audience/market tension",
-    "positioning": "One sentence positioning statement",
-    "value_proposition": "Core value proposition in one line",
-    "strategic_pillars": ["pillar 1", "pillar 2", "pillar 3"],
-    "target_emotion": "The primary emotion to evoke",
-    "competitive_advantage": "What makes this brand different"
+    "narrative_arc": {{
+        "the_hook": "The opening punch that grabs attention",
+        "the_villain": "The specific market force or frustration we are fighting",
+        "the_epiphany": "The moment the audience realizes why {brand_name} is the only answer",
+        "the_climax": "The peak of the product demo/solution"
+    }},
+    "positioning": {{
+        "category_definition": "The new or redefined category we own",
+        "unique_value_prop": "The one-sentence reason we win",
+        "pillars": ["Pillar 1: Technical", "Pillar 2: Emotional", "Pillar 3: Economic"]
+    }},
+    "alignment_matrix": {{
+        "problem_mapped_to_solution": "Direct link between research pain and product gain",
+        "competitor_gap_mapped_to_us": "How we fill the blindspot"
+    }},
+    "target_emotion": "The desired emotional state at the end of the pitch (e.g., Fear of Missing Out, Relieved Certainty)"
 }}"""
 
     result = await huggingface_service.generate_json(prompt, SYSTEM_PROMPT)

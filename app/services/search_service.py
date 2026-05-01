@@ -35,17 +35,31 @@ def search_competitors(brand_name: str, industry: str, max_results: int = 5) -> 
     return _search_with_retry(f"top competitors of {brand_name} in {industry}", max_results)
 
 
+def search_pro(query: str, max_results: int = 5) -> list[dict]:
+    # Professional search for industry reports, whitepapers, and investor decks
+    pro_queries = [
+        f"{query} industry report 2024 2025",
+        f"{query} market analysis whitepaper",
+        f"{query} investor presentation filetype:pdf",
+        f"{query} key pain points and challenges"
+    ]
+    all_results = []
+    for q in pro_queries[:2]: # limit to 2 pro queries to avoid rate limits
+        all_results.extend(_search_with_retry(q, max_results=3))
+    return all_results
+
 def gather_research(brand_name: str, industry: str) -> str:
     brand_info = search_brand(brand_name)
     market_info = search_market(industry)
     competitor_info = search_competitors(brand_name, industry)
+    pro_info = search_pro(industry)
 
     research = f"## Brand Research: {brand_name}\n"
     for item in brand_info:
         research += f"- {item['title']}: {item['body']}\n"
 
-    research += f"\n## Market Trends: {industry}\n"
-    for item in market_info:
+    research += f"\n## Market Trends & Pro Insights: {industry}\n"
+    for item in pro_info + market_info:
         research += f"- {item['title']}: {item['body']}\n"
 
     research += f"\n## Competitive Landscape\n"

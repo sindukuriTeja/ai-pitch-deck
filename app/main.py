@@ -49,22 +49,24 @@ async def generate_deck(task_id: str, request: GenerateRequest):
         await notify_progress(task_id, "strategizing", 30, "Developing strategic direction...")
         strategy = await strategy_agent.run(
             request.brand_name, request.problem_statement,
-            request.target_audience, request.tone, research
+            request.target_audience, request.tone, research, request.theme_id
         )
 
         # Step 3: Creative & Structure (HTML Generation)
-        await notify_progress(task_id, "creating", 50, "Generating HTML slide layouts...")
+        await notify_progress(task_id, "creating", 50, "Generating high-impact creative content...")
         creative = await creative_agent.run(
             request.brand_name, request.problem_statement,
-            request.target_audience, request.tone, strategy
+            request.target_audience, request.tone, strategy, request.theme_id
         )
 
-        # Skipping structure and review agents as they rely on old rigid layout formats
-        await notify_progress(task_id, "structuring", 70, "Finalizing HTML structure...")
-        await notify_progress(task_id, "reviewing", 80, "Reviewing generated code...")
+        # Step 4: Quality Review & Refinement
+        await notify_progress(task_id, "reviewing", 75, "Refining copy and ensuring quality...")
+        creative = await review_agent.run(creative, request.tone)
+
+        await notify_progress(task_id, "structuring", 85, "Finalizing presentation structure...")
 
         # Step 6: Build PPTX
-        await notify_progress(task_id, "building", 90, "Building HTML-driven PowerPoint file...")
+        await notify_progress(task_id, "building", 90, "Building professional PowerPoint file...")
         output_path = build_presentation(creative, request.theme_id, task_id)
 
         await notify_progress(task_id, "complete", 100,

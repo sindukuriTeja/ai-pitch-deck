@@ -2,35 +2,63 @@ from app.services import search_service
 from app.services import huggingface_service
 
 
-SYSTEM_PROMPT = """You are a senior market research analyst at a top advertising agency.
-Your job is to analyze raw research data and produce a clear, structured market research brief.
-Focus on: market size, key trends, target audience pain points, competitive landscape, and opportunities.
-Be specific and insightful - avoid generic observations."""
+SYSTEM_PROMPT = """You are a Lead Market Intelligence Officer at a Tier-1 Venture Capital firm.
+Your job is to perform deep-dive research for high-stakes investment pitches.
+You must synthesize raw search data into a 'Smarter Research Brief' that connects the dots between market gaps, technological shifts, and consumer behavior.
+
+Focus on:
+1. 'The Why Now': What confluence of factors makes this business critical TODAY?
+2. 'Unfair Advantage': Identify potential moats (data, network effects, regulatory barriers).
+3. 'Quantifiable Market Dynamics': TAM/SAM/SOM with realistic, research-backed logic.
+4. 'Competitor Blindspots': Where are the incumbents failing?
+5. 'Alignment Vector': How does the research support the proposed solution?
+
+Be hyper-specific. Use real industry jargon, actual competitor names, and recent market events (2024-2025)."""
 
 
 async def run(brand_name: str, problem_statement: str, target_audience: str) -> dict:
     # Gather web research
-    industry = problem_statement.split()[0:5]
-    industry_str = " ".join(industry)
+    words = problem_statement.split()
+    industry_str = " ".join(words[:5]) if len(words) > 5 else problem_statement
+    
     raw_research = search_service.gather_research(brand_name, industry_str)
 
-    prompt = f"""Analyze this research data for a pitch deck about "{brand_name}".
-If the Raw Research is limited or says 'Live Data Unavailable', use your deep internal knowledge and reasoning capabilities to generate highly accurate, specific, and realistic data for this industry. DO NOT use generic placeholders like 'trend 1'. Provide actual, real-world industry trends, real competitors, and deep insights based on facts.
+    prompt = f"""Synthesize this intelligence for a high-stakes pitch for "{brand_name}".
 
-Problem: {problem_statement}
-Target Audience: {target_audience}
+Context:
+- Primary Problem: {problem_statement}
+- Core Audience: {target_audience}
 
-Raw Research:
+Raw Intelligence Data:
 {raw_research}
 
-Produce a JSON response with these fields:
+Generate a 'Smart Intelligence Report' in JSON.
+DO NOT use placeholders. If data is sparse, use 'Heuristic Estimation' based on your training to provide realistic, professional values.
+
+Expected JSON structure:
 {{
-    "brand_summary": "2-3 sentence brand overview",
-    "market_trends": ["trend 1", "trend 2", "trend 3"],
-    "audience_insights": ["insight 1", "insight 2", "insight 3"],
-    "competitors": ["competitor 1", "competitor 2", "competitor 3"],
-    "opportunities": ["opportunity 1", "opportunity 2"],
-    "key_data_points": ["stat or fact 1", "stat or fact 2", "stat or fact 3"]
+    "market_intelligence": {{
+        "the_why_now": "The specific confluence of trends making this urgent",
+        "market_dynamics": {{
+            "tam": "Global opportunity description",
+            "sam": "Serviceable opportunity",
+            "growth_drivers": ["Driver 1", "Driver 2"]
+        }},
+        "trends": ["Quantified trend 1", "Emerging technology shift"]
+    }},
+    "competitor_intelligence": {{
+        "direct_rivals": [
+            {{"name": "Company X", "moat": "Their strength", "blindspot": "The gap we exploit"}}
+        ],
+        "indirect_threats": ["Alternative solution 1"]
+    }},
+    "audience_psychographics": {{
+        "core_tension": "The underlying frustration/fear",
+        "aspirational_state": "What they actually want to feel",
+        "purchasing_triggers": ["Trigger 1"]
+    }},
+    "strategic_opportunities": ["High-value opportunity 1", "Low-hanging fruit"],
+    "alignment_notes": "How this research validates the Brand's approach"
 }}"""
 
     result = await huggingface_service.generate_json(prompt, SYSTEM_PROMPT)

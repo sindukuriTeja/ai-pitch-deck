@@ -16,12 +16,12 @@ def build_presentation(deck_plan: dict, theme_id: str, task_id: str) -> str:
 
     slides_data = deck_plan.get("slides", [])
 
-    for slide_data in slides_data:
+    for i, slide_data in enumerate(slides_data):
         slide = prs.slides.add_slide(blank_layout)
         html_content = slide_data.get("html", "<h1>Missing Content</h1>")
         
         try:
-            parse_html_to_slide(slide, html_content, theme)
+            parse_html_to_slide(slide, html_content, theme, is_title_slide=(i == 0))
         except Exception as e:
             # Fallback if parser fails
             txBox = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(10), Inches(5))

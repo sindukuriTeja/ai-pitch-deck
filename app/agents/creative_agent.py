@@ -1,54 +1,78 @@
 from app.services import huggingface_service
+from app.agents.templates import get_template
 
+SYSTEM_PROMPT = """You are a Cinematic Pitch Designer. You turn cold strategies into burning desires.
+Your goal is to populate the pitch deck with content that feels 'Smarter' and more 'Aligned'.
 
-SYSTEM_PROMPT = """You are an award-winning creative director at a top advertising agency.
-Your job is to take strategy and create compelling creative content for a pitch deck.
-You must design each slide using HTML code. Use <h1> for titles, <h2> for subtitles, <p> for body text, and <ul>/<li> for bullet points.
-Every word must earn its place. Be bold, specific, and memorable. Avoid cliches."""
+Content Principles:
+1. THE NARRATIVE ARC: Follow the 'Hook -> Villain -> Epiphany -> Climax' arc provided in strategy.
+2. ALIGNMENT CHECK: Every slide must directly reference the research-backed insights or the strategic pillars.
+3. SMARTER COPY: Use 'Power Headlines' that sell an outcome, not just a feature.
+4. EVIDENCE-BASED: Proactively include 'Heuristic Data Points' (e.g., '30% efficiency increase' or '5x faster than legacy systems') to make the pitch smarter.
+5. HTML DESIGN: Use <h1> for the Power Headline, <h2> for the value statement, and <p> or <ul> for details.
+6. CONCISENESS: NEVER exceed 3-4 bullet points or 2 short sentences per slide. This is critical for visual alignment.
 
+Produce a JSON response with creative content designed with HTML code."""
 
-async def run(brand_name: str, problem_statement: str, target_audience: str, tone: str, strategy: dict) -> dict:
-    prompt = f"""Create creative content for a pitch deck for "{brand_name}".
+async def run(brand_name: str, problem_statement: str, target_audience: str, tone: str, strategy: dict, theme_id: str) -> dict:
+    template_slides = get_template(theme_id)
+    template_str = "\n".join([f"Slide {i+1} Target: {s}" for i, s in enumerate(template_slides)])
 
-Strategy:
-- Key Insight: {strategy.get('key_insight', '')}
-- Positioning: {strategy.get('positioning', '')}
-- Value Proposition: {strategy.get('value_proposition', '')}
-- Strategic Pillars: {', '.join(strategy.get('strategic_pillars', []))}
-- Target Emotion: {strategy.get('target_emotion', '')}
-- Tone: {tone}
+    arc = strategy.get('narrative_arc', {})
+    pos = strategy.get('positioning', {})
+    align = strategy.get('alignment_matrix', {})
 
-Brief: {problem_statement}
+    prompt = f"""Design a 'Smart Pitch Deck' for "{brand_name}" ({theme_id}).
+
+The Narrative Framework:
+- The Hook: {arc.get('the_hook')}
+- The Villain (Market Tension): {arc.get('the_villain')}
+- The Epiphany (Our Solution): {arc.get('the_epiphany')}
+- The Climax (Product Power): {arc.get('the_climax')}
+
+Strategic Alignment:
+- Category: {pos.get('category_definition')}
+- Unique Value: {pos.get('unique_value_prop')}
+- Pillars: {', '.join(pos.get('pillars', []))}
+- Problem-Solution Map: {align.get('problem_mapped_to_solution')}
+
+Required Deck Structure:
+{template_str}
+
+Tone: {tone}
 Audience: {target_audience}
 
-Produce a JSON response with creative content for 10-15 slides. Each slide MUST be designed with HTML code.
-Format:
+Generate a JSON object with {len(template_slides)} slides. 
+EACH SLIDE MUST:
+- Use professional, high-impact copy.
+- Include at least one 'Smarter' detail (a statistic, a specific workflow step, or a technical proof point).
+- Strictly follow the HTML tag usage.
+
+JSON structure:
 {{
-    "big_idea": "The overarching creative concept in one phrase",
-    "tagline": "A memorable tagline for the brand",
+    "big_idea": "The central creative theme",
+    "tagline": "The 3-5 word memorable tagline",
     "slides": [
         {{
             "slide_number": 1,
-            "html": "<h1>Brand Name</h1><h2>Tagline goes here</h2>"
-        }},
-        {{
-            "slide_number": 2,
-            "html": "<h1>The Challenge</h1><p>Description of the problem...</p>"
+            "html": "<h1>Headline</h1><p>Content...</p>"
         }}
     ]
 }}"""
 
     result = await huggingface_service.generate_json(prompt, SYSTEM_PROMPT)
+    
     if result.get("parse_error") or "slides" not in result:
+        fallback_slides = []
+        for i, title in enumerate(template_slides):
+            fallback_slides.append({
+                "slide_number": i + 1,
+                "html": f"<h1>{title.split('—')[0].strip()}</h1><p>Content for {title.split('—')[0].strip()} in {theme_id} context.</p>"
+            })
+        
         result = {
-            "big_idea": f"Reimagining {problem_statement.split()[0:3]} for a better tomorrow",
-            "tagline": strategy.get("positioning", f"{brand_name} - The Future Starts Here"),
-            "slides": [
-                {"slide_number": 1, "html": f"<h1>{brand_name}</h1><h2>{strategy.get('positioning', '')}</h2>"},
-                {"slide_number": 2, "html": f"<h1>The Challenge</h1><p>{problem_statement}</p>"},
-                {"slide_number": 3, "html": f"<h1>The Insight</h1><p>{strategy.get('key_insight', '')}</p>"},
-                {"slide_number": 4, "html": f"<h1>The Opportunity</h1><p>A growing market ready for disruption.</p><ul><li>Growing demand</li><li>Underserved market</li></ul>"},
-                {"slide_number": 5, "html": f"<h1>Introducing {brand_name}</h1><h2>{strategy.get('value_proposition', '')}</h2>"},
-            ]
+            "big_idea": f"Reimagining {problem_statement[:20]} for a better tomorrow",
+            "tagline": f"{brand_name} - The Future Starts Here",
+            "slides": fallback_slides
         }
     return result

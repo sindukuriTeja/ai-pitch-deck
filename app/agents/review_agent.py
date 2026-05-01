@@ -1,84 +1,51 @@
 from app.services import huggingface_service
 
-SYSTEM_PROMPT = """You are a senior creative reviewer at an advertising agency.
-Review a pitch deck plan for quality. Check for:
-1. Generic or cliché content (flag it)
-2. Repetitive layouts (flag consecutive same layouts)
-3. Text-heavy slides (body text > 3 sentences)
-4. Missing big idea or weak storytelling arc
-5. Inconsistent tone
+SYSTEM_PROMPT = """You are the 'Pitch Doctor'. You have a 100% success rate in helping startups get funded.
+Your job is to take a draft pitch deck and perform a 'Surgical Alignment' and 'Intelligence Injection'.
 
-For each issue found, suggest a specific fix. Respond in JSON."""
+Review Criteria:
+1. ALIGNMENT: Does every slide follow the narrative arc? Is the solution solving the SPECIFIC problem research identified?
+2. INTELLIGENCE: Are the data points specific? Replace generic words like 'best' or 'fast' with 'industry-leading' or '300% faster'.
+3. PUNCHY HEADLINES: Every headline (h1) should be an assertive claim, not a label.
+4. COHESION: Does the big idea flow through every slide?
+5. ALIGNMENT & SPACING: Ensure NO slide has more than 5 lines of total text. If it does, aggressively summarize it into punchy bullet points to prevent overlapping or overflowing.
+
+You must return the 'Fundable' version of the slides in JSON."""
 
 
-async def run(deck_plan: dict, tone: str) -> dict:
-    slides = deck_plan.get("slides", [])
+async def run(creative_data: dict, tone: str) -> dict:
+    slides = creative_data.get("slides", [])
+    big_idea = creative_data.get("big_idea", "")
+    tagline = creative_data.get("tagline", "")
 
-    # Rule-based quality checks (fast, no LLM needed)
-    issues = []
-    fixes_applied = 0
+    prompt = f"""Perform a surgical review of this pitch deck. Make it 'Fundable'.
+Tone: {tone}
+Big Idea: {big_idea}
 
-    # Check for consecutive same layouts
-    for i in range(1, len(slides)):
-        if slides[i].get("layout_type") == slides[i-1].get("layout_type"):
-            alt_layouts = ["content_image", "two_column", "bullet_points", "stats_numbers", "quote_insight"]
-            current = slides[i]["layout_type"]
-            for alt in alt_layouts:
-                if alt != current:
-                    slides[i]["layout_type"] = alt
-                    fixes_applied += 1
-                    break
+Slides (HTML Format):
+{json.dumps(slides, indent=2)}
 
-    # Check for text-heavy slides
-    for slide in slides:
-        body = slide.get("body", "")
-        if body and len(body.split(". ")) > 3:
-            sentences = body.split(". ")
-            slide["body"] = ". ".join(sentences[:2]) + "."
-            if not slide.get("bullets"):
-                slide["bullets"] = [s.strip().rstrip(".") for s in sentences[2:] if s.strip()]
-            fixes_applied += 1
+Instructions:
+- Sharpen every Headline (h1) to be a strong, active claim.
+- Inject specific 'Smarter' details (heuristic metrics or technical jargon) where appropriate.
+- Ensure 'Strategic Alignment' by reinforcing the big idea in at least 30% of the slides.
+- Keep the HTML valid.
 
-    # Check for empty slides
-    for slide in slides:
-        if not slide.get("title"):
-            slide["title"] = f"Slide {slide.get('slide_number', '?')}"
-            fixes_applied += 1
-
-    # Try LLM review for content quality
-    try:
-        slide_summary = "\n".join([
-            f"Slide {s.get('slide_number')}: [{s.get('layout_type')}] {s.get('title', 'No title')}"
-            for s in slides
-        ])
-        prompt = f"""Review this pitch deck outline for quality and suggest improvements.
-Tone should be: {tone}
-
-Deck: {deck_plan.get('big_idea', 'N/A')}
-Tagline: {deck_plan.get('tagline', 'N/A')}
-
-Slides:
-{slide_summary}
-
-Respond in JSON:
+Produce the 'Master JSON' with updated slides:
 {{
-    "quality_score": 7,
-    "strengths": ["strength 1"],
-    "improvements": ["improvement 1"],
-    "approved": true
+    "slides": [
+        {{
+            "slide_number": 1,
+            "html": "<h1>Assertive Headline</h1><p>Intelligent, aligned copy...</p>"
+        }},
+        ...
+    ],
+    "pitch_doctor_notes": ["Major alignment fix on slide X", "Intelligence injection on slide Y"]
 }}"""
-        review = await huggingface_service.generate_json(prompt, SYSTEM_PROMPT)
-        if not review.get("parse_error"):
-            quality_score = review.get("quality_score", 7)
-        else:
-            quality_score = 7
-    except Exception:
-        quality_score = 7
 
-    deck_plan["slides"] = slides
-    deck_plan["review"] = {
-        "quality_score": quality_score,
-        "fixes_applied": fixes_applied,
-        "approved": True
-    }
-    return deck_plan
+    result = await huggingface_service.generate_json(prompt, SYSTEM_PROMPT)
+    if not result.get("parse_error") and "slides" in result:
+        creative_data["slides"] = result["slides"]
+        creative_data["pitch_doctor_notes"] = result.get("pitch_doctor_notes", [])
+    
+    return creative_data
