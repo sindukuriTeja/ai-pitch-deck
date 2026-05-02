@@ -14,6 +14,16 @@ from app.agents import research_agent, strategy_agent, creative_agent, structure
 from app.services import huggingface_service, image_service
 from app.config import OUTPUT_DIR
 
+app = FastAPI(title="AI Pitch Deck Generator", version="1.0.0")
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+
+# In-memory task store
+tasks: dict[str, TaskStatus] = {}
+decks: dict[str, dict] = {}
+websocket_connections: dict[str, list[WebSocket]] = {}
 
 async def notify_progress(task_id: str, status: str, progress: int, message: str, download_url: str = None):
     task = TaskStatus(task_id=task_id, status=status, progress=progress, message=message, download_url=download_url)
@@ -24,7 +34,6 @@ async def notify_progress(task_id: str, status: str, progress: int, message: str
                 await ws.send_json(task.model_dump())
             except Exception:
                 pass
-
 
 async def generate_deck(task_id: str, request: GenerateRequest):
     try:
@@ -73,22 +82,18 @@ async def generate_deck(task_id: str, request: GenerateRequest):
     except Exception as e:
         await notify_progress(task_id, "error", 0, f"Error: {str(e)}")
 
-
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
-
 
 @app.get("/api/themes")
 async def get_themes():
     return {"themes": list_themes()}
 
-
 @app.get("/api/health")
 async def health():
     model_ok = await huggingface_service.check_health()
     return {"status": "ok", "model": model_ok}
-
 
 @app.post("/api/generate")
 async def start_generation(request: GenerateRequest):
@@ -99,20 +104,17 @@ async def start_generation(request: GenerateRequest):
     asyncio.create_task(generate_deck(task_id, request))
     return {"task_id": task_id}
 
-
 @app.get("/api/status/{task_id}")
 async def get_status(task_id: str):
     if task_id not in tasks:
         return {"error": "Task not found"}, 404
     return tasks[task_id].model_dump()
 
-
 @app.get("/presentation/{task_id}", response_class=HTMLResponse)
 async def presentation(request: Request, task_id: str):
     if task_id not in decks:
         return HTMLResponse("Presentation not found or expired.", status_code=404)
     return templates.TemplateResponse("presentation.html", {"request": request, "deck": decks[task_id]})
-
 
 @app.get("/api/download/{task_id}")
 async def download(task_id: str):
@@ -124,7 +126,6 @@ async def download(task_id: str):
         media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
         filename=f"pitch_deck_{task_id}.pptx"
     )
-
 
 @app.websocket("/ws/{task_id}")
 async def websocket_endpoint(websocket: WebSocket, task_id: str):
