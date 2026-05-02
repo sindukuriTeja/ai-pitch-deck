@@ -10,7 +10,7 @@ from starlette.requests import Request
 from app.models.schemas import GenerateRequest, TaskStatus
 from app.pptx_engine.themes import list_themes
 from app.pptx_engine.builder import build_presentation
-from app.agents import research_agent, strategy_agent, creative_agent, structure_agent, review_agent
+from app.agents import research_agent, strategy_agent, creative_agent, structure_agent, review_agent, image_agent
 from app.services import huggingface_service, image_service
 from app.config import OUTPUT_DIR
 
@@ -61,23 +61,14 @@ async def generate_deck(task_id: str, request: GenerateRequest):
         await notify_progress(task_id, "reviewing", 75, "Refining copy and ensuring quality...")
         creative = await review_agent.run(creative, request.tone)
 
-        # Step 5: Image Generation
-        await notify_progress(task_id, "visualizing", 80, "Generating professional AI illustrations...")
-        image_tasks = []
-        for slide in creative.get("slides", []):
-            if slide.get("image_prompt"):
-                image_tasks.append(image_service.generate_image(slide["image_prompt"]))
-            else:
-                image_tasks.append(asyncio.sleep(0)) # No-op for slides without images
+        # Step 5: Image Generation via Image Agent (Z-Image-Turbo)
+        await notify_progress(task_id, "visualizing", 80, "Image Agent: Generating cinematic AI illustrations with Z-Image-Turbo...")
+        creative = await image_agent.run(creative)
 
-        # Run all image generations in parallel to save time
-        image_results = await asyncio.gather(*image_tasks)
-        
-        for i, img_path in enumerate(image_results):
-            if img_path and i < len(creative["slides"]):
-                creative["slides"][i]["image_path"] = img_path
-
-        await notify_progress(task_id, "structuring", 85, "Finalizing presentation structure...")
+        img_stats = creative.get("image_generation_stats", {})
+        gen_count = img_stats.get("successfully_generated", 0)
+        total_req = img_stats.get("total_requested", 0)
+        await notify_progress(task_id, "structuring", 85, f"Image Agent complete: {gen_count}/{total_req} visuals generated.")
 
         # Step 6: Build PPTX
         await notify_progress(task_id, "building", 90, "Building professional PowerPoint file...")
@@ -101,7 +92,8 @@ async def get_themes():
 @app.get("/api/health")
 async def health():
     model_ok = await huggingface_service.check_health()
-    return {"status": "ok", "model": model_ok}
+    image_ok = await image_service.check_model_health()
+    return {"status": "ok", "text_model": model_ok, "image_model": image_ok}
 
 @app.post("/api/generate")
 async def start_generation(request: GenerateRequest):
