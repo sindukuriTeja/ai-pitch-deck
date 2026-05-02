@@ -1,3 +1,2 @@
-# This file is deprecated. The project now uses huggingface_service.py
-# See huggingface_service.py for the MiMo-V2-Flash integration via Hugging Face Inference API.
+# This file is deprecated. The project uses huggingface_service.py with Qwen3-30B-A3B.
 raise ImportError("ollama_service is deprecated. Use huggingface_service instead.")

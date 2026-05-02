@@ -10,7 +10,7 @@ Review Criteria:
 3. PUNCHY HEADLINES: Every headline (h1) should be an assertive claim, not a label.
 4. COHESION: Does the big idea flow through every slide?
 5. ALIGNMENT & SPACING: Ensure NO slide has more than 5 lines of total text. If it does, aggressively summarize it into punchy bullet points to prevent overlapping or overflowing.
-6. VISUAL STORYTELLING: Check the 'image_prompt' fields. They should be cinematic and descriptive, optimized for the Z-Image-Turbo model. DO NOT delete existing image prompts; improve them.
+6. VISUAL STORYTELLING: Check the 'image_prompt' fields. They should be cinematic and descriptive, optimized for high-quality image generation. DO NOT delete existing image prompts; improve them.
 
 CRITICAL: You MUST preserve the 'image_prompt' field for each slide in your response. If a slide doesn't have one and needs it, add it."""
 

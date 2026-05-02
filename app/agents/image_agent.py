@@ -11,14 +11,7 @@ from app.config import (
 class ImageGenerationAgent:
     """
     AI Agent responsible for generating professional images for pitch deck slides
-    using the Z-Image-Turbo model from Hugging Face.
-
-    Pipeline:
-    1. Receives slide content and image prompts from the creative agent
-    2. Enhances prompts with cinematic/professional styling
-    3. Generates images via Z-Image-Turbo (optimized turbo diffusion)
-    4. Validates and saves images
-    5. Returns image paths mapped to slide numbers
+    using Stable Diffusion XL via Hugging Face Inference API.
     """
 
     def __init__(self):
@@ -31,10 +24,6 @@ class ImageGenerationAgent:
         os.makedirs(IMAGE_DIR, exist_ok=True)
 
     def _enhance_prompt(self, raw_prompt: str, slide_context: str = "") -> str:
-        """
-        Enhance a raw image prompt with Z-Image-Turbo optimized parameters.
-        The model excels with detailed, cinematic descriptions.
-        """
         style_prefix = (
             "Professional cinematic photography for a corporate pitch deck presentation, "
         )
@@ -55,18 +44,12 @@ class ImageGenerationAgent:
         return enhanced
 
     def _generate_single_image(self, prompt: str) -> str:
-        """
-        Synchronous image generation using Z-Image-Turbo.
-        Uses guidance_scale=0.0 and 2 inference steps (turbo/distilled model optimization).
-        """
         enhanced_prompt = self._enhance_prompt(prompt)
 
         for attempt in range(MAX_IMAGE_RETRIES + 1):
             try:
                 image = self.client.text_to_image(
                     enhanced_prompt,
-                    guidance_scale=0.0,
-                    num_inference_steps=2,
                     width=IMAGE_WIDTH,
                     height=IMAGE_HEIGHT,
                 )
@@ -87,20 +70,9 @@ class ImageGenerationAgent:
         return ""
 
     async def generate_image(self, prompt: str) -> str:
-        """Async wrapper for single image generation."""
         return await asyncio.to_thread(self._generate_single_image, prompt)
 
     async def run(self, creative_data: dict) -> dict:
-        """
-        Main agent entry point. Processes all slides and generates images
-        for those with image_prompt fields.
-
-        Args:
-            creative_data: Dict with 'slides' list from creative agent
-
-        Returns:
-            Updated creative_data with 'image_path' added to relevant slides
-        """
         slides = creative_data.get("slides", [])
 
         image_tasks = []
@@ -136,7 +108,6 @@ class ImageGenerationAgent:
         return creative_data
 
     def _log_error(self, prompt: str, error: str):
-        """Log image generation errors for debugging."""
         log_path = os.path.join(IMAGE_DIR, "generation_errors.log")
         try:
             with open(log_path, "a") as f:
@@ -148,10 +119,8 @@ class ImageGenerationAgent:
             pass
 
 
-# Singleton instance for the agent pipeline
 image_agent = ImageGenerationAgent()
 
 
 async def run(creative_data: dict) -> dict:
-    """Module-level entry point matching the agent pipeline pattern."""
     return await image_agent.run(creative_data)

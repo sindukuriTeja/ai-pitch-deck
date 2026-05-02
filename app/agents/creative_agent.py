@@ -12,7 +12,7 @@ Content Principles:
 5. HTML DESIGN: Use <h1> for the Power Headline, <h2> for the value statement, and <p> or <ul> for details.
 6. CONCISENESS: NEVER exceed 3-4 bullet points or 2 short sentences per slide. This is critical for visual alignment.
 7. VISUAL ALIGNMENT: Identify 2-3 key slides where a professional image or illustration would add value (e.g., Solution, Market, Team, or Big Idea). Provide a specific 'Cinematic' image prompt for these slides.
-   *   Z-Image-Turbo Prompting Rule: Be descriptive and visual. Describe subjects, lighting, and environment. (e.g., 'A sleek glass-walled boardroom overlooking a futuristic neon city at dusk, soft bokeh, cinematic lighting' instead of 'meeting room').
+   *   Image Prompting Rule: Be descriptive and visual. Describe subjects, lighting, and environment. (e.g., 'A sleek glass-walled boardroom overlooking a futuristic neon city at dusk, soft bokeh, cinematic lighting' instead of 'meeting room').
 
 Produce a JSON response with creative content designed with HTML code.
 

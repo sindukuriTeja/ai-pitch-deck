@@ -61,8 +61,8 @@ async def generate_deck(task_id: str, request: GenerateRequest):
         await notify_progress(task_id, "reviewing", 75, "Refining copy and ensuring quality...")
         creative = await review_agent.run(creative, request.tone)
 
-        # Step 5: Image Generation via Image Agent (Z-Image-Turbo)
-        await notify_progress(task_id, "visualizing", 80, "Image Agent: Generating cinematic AI illustrations with Z-Image-Turbo...")
+        # Step 5: Image Generation via Image Agent
+        await notify_progress(task_id, "visualizing", 80, "Image Agent: Generating cinematic AI illustrations...")
         creative = await image_agent.run(creative)
 
         img_stats = creative.get("image_generation_stats", {})
