@@ -63,11 +63,19 @@ async def generate_deck(task_id: str, request: GenerateRequest):
 
         # Step 5: Image Generation
         await notify_progress(task_id, "visualizing", 80, "Generating professional AI illustrations...")
+        image_tasks = []
         for slide in creative.get("slides", []):
             if slide.get("image_prompt"):
-                img_path = image_service.generate_image(slide["image_prompt"])
-                if img_path:
-                    slide["image_path"] = img_path
+                image_tasks.append(image_service.generate_image(slide["image_prompt"]))
+            else:
+                image_tasks.append(asyncio.sleep(0)) # No-op for slides without images
+
+        # Run all image generations in parallel to save time
+        image_results = await asyncio.gather(*image_tasks)
+        
+        for i, img_path in enumerate(image_results):
+            if img_path and i < len(creative["slides"]):
+                creative["slides"][i]["image_path"] = img_path
 
         await notify_progress(task_id, "structuring", 85, "Finalizing presentation structure...")
 

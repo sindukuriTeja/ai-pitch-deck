@@ -81,9 +81,11 @@ JSON structure:
     if result.get("parse_error") or "slides" not in result:
         fallback_slides = []
         for i, title in enumerate(template_slides):
+            clean_title = title.split('—')[0].strip()
             fallback_slides.append({
                 "slide_number": i + 1,
-                "html": f"<h1>{title.split('—')[0].strip()}</h1><p>Content for {title.split('—')[0].strip()} in {theme_id} context.</p>"
+                "html": f"<h1>{clean_title}</h1><p>Strategic content for {clean_title} in the {theme_id} sector for {brand_name}.</p>",
+                "image_prompt": f"A professional, high-end cinematic visualization of {clean_title} for a {theme_id} startup" if i in [0, 4, 6] else None
             })
         
         result = {
