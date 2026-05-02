@@ -12,7 +12,7 @@ from app.pptx_engine.themes import list_themes
 from app.pptx_engine.builder import build_presentation
 from app.agents import research_agent, strategy_agent, creative_agent, structure_agent, review_agent, image_agent
 from app.services import huggingface_service, image_service
-from app.config import OUTPUT_DIR
+from app.config import OUTPUT_DIR, IS_VERCEL
 
 app = FastAPI(title="AI Pitch Deck Generator", version="1.0.0")
 
@@ -62,13 +62,15 @@ async def generate_deck(task_id: str, request: GenerateRequest):
         creative = await review_agent.run(creative, request.tone)
 
         # Step 5: Image Generation via Image Agent
-        await notify_progress(task_id, "visualizing", 80, "Image Agent: Generating cinematic AI illustrations...")
-        creative = await image_agent.run(creative)
-
-        img_stats = creative.get("image_generation_stats", {})
-        gen_count = img_stats.get("successfully_generated", 0)
-        total_req = img_stats.get("total_requested", 0)
-        await notify_progress(task_id, "structuring", 85, f"Image Agent complete: {gen_count}/{total_req} visuals generated.")
+        if not IS_VERCEL:
+            await notify_progress(task_id, "visualizing", 80, "Image Agent: Generating cinematic AI illustrations...")
+            creative = await image_agent.run(creative)
+            img_stats = creative.get("image_generation_stats", {})
+            gen_count = img_stats.get("successfully_generated", 0)
+            total_req = img_stats.get("total_requested", 0)
+            await notify_progress(task_id, "structuring", 85, f"Image Agent complete: {gen_count}/{total_req} visuals generated.")
+        else:
+            await notify_progress(task_id, "structuring", 85, "Building deck (images skipped for serverless)...")
 
         # Step 6: Build PPTX
         await notify_progress(task_id, "building", 90, "Building professional PowerPoint file...")
